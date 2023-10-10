@@ -1,0 +1,6 @@
+pymilvus==2.3.1
+llama-index==0.8.41
+promptquality[arrow]==0.11.0
+openai
+transformers
+sentence_transformers
