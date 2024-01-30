@@ -1,7 +1,7 @@
 # %%
 import sys, os, random
 
-# from tqdm import tqdm
+from tqdm import tqdm
 
 # tqdm.pandas()
 
@@ -37,10 +37,6 @@ metrics = [
 
 pq.login("console.demo.rungalileo.io")
 
-galileo_handler = pq.GalileoPromptCallback(
-    project_name="pinecone-webinar-30jan-test", scorers=metrics
-)
-
 # %%
 df = pd.read_csv("../data/bigbasket_garnier.csv")
 df.head()
@@ -60,18 +56,23 @@ embeddings = OpenAIEmbeddings()
 index = pc.Index("webinar")
 vectorstore = langchain_pinecone(index, embeddings.embed_query, "text")
 retriever = vectorstore.as_retriever(
-    search_kwargs={"k": 10}
+    search_kwargs={"k": 5}
 )  # https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/vectorstores.py#L553
 
-llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106")
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
+llm = ChatOpenAI(model_name="gpt-3.5-turbo-1106", temperature=1.0)
 
 print("Ready to chat!")
-for q in questions[0]:
-    print("Question: ", q)
-    print(qa.run(q, callbacks=[galileo_handler]))
-    print("\n\n")
-galileo_handler.finish()
+for question_chunk in tqdm(questions):
+    
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
+    galileo_handler = pq.GalileoPromptCallback(
+    project_name="pinecone-webinar-30jan-k5", scorers=metrics
+)
+    for q in question_chunk:
+        print("Question: ", q)
+        print(qa.run(q, callbacks=[galileo_handler]))
+        print("\n\n")
+    galileo_handler.finish()
 
 # %%
