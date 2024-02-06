@@ -24,20 +24,25 @@ import promptquality as pq
 from promptquality import Scorers
 from promptquality import SupportedModels
 
-project_name = "pinecone-webinar-feb2"
-run_name = "default"
-index_name = "webinar-default-config"
+project_name = "feb6"
+index_name = "garnier-4000-200"
+# index_name = "garnier-200-50"
 model_name="gpt-3.5-turbo-1106"
 questions_per_conversation = 5
 temperature = 0.1
 k = 4
+run_name = f"{index_name}-k-{k}"
 
 metrics = [
-    Scorers.context_adherence,
     Scorers.latency,
     Scorers.pii,
     Scorers.toxicity,
     Scorers.tone,
+    Scorers.correctness,
+    #rag metrics below
+    Scorers.context_adherence,
+    Scorers.completeness_gpt,
+    Scorers.chunk_attribution_utilization_gpt,
     # Uncertainty, BLEU and ROUGE are automatically included
 ]
 
@@ -51,11 +56,10 @@ def aggregator(scores, indices) -> dict:
 length_scorer = pq.CustomScorer(name='Response Length', executor=executor, aggregator=aggregator)
 metrics.append(length_scorer)
 
-pq.login("console.demo.rungalileo.io")
+pq.login("console.dev.rungalileo.io")
 
+# Prepare questions for the conversation
 df = pd.read_csv("../data/bigbasket_garnier.csv")
-df.head()
-
 df["questions"] = df["questions"].apply(eval)
 questions = df.explode("questions")["questions"].tolist()
 random.Random(0).shuffle(questions)
@@ -64,13 +68,10 @@ questions = [questions[i : i + questions_per_conversation] for i in range(0, len
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 embeddings = OpenAIEmbeddings()
-
 index = pc.Index(index_name)
 vectorstore = langchain_pinecone(index, embeddings.embed_query, "text")
 retriever = vectorstore.as_retriever(search_kwargs={"k": k})  # https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/vectorstores.py#L553
-
 llm = ChatOpenAI(model_name=model_name, temperature=temperature)
-
 galileo_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=run_name, scorers=metrics)
 
 print("Ready to chat!")
