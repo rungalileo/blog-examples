@@ -25,14 +25,16 @@ from promptquality import Scorers
 from promptquality import SupportedModels
 
 project_name = "feb7"
-# index_name = "garnier-4000-200"
-index_name = "garnier-200-50"
-llm_model_name="gpt-3.5-turbo-1106"
-emb_model_name = "text-embedding-3-small"
+index_name, emb_model_name = "garnier-rc-cs4000-co200-small", "text-embedding-3-small"
+# index_name, emb_model_name = "garnier-rc-cs200-co50-small", "text-embedding-3-small"
+# index_name, emb_model_name = "garnier-rc-cs200-co50-large", "text-embedding-3-large"
+# index_name, emb_model_name = "garnier-rc-cs200-co50-002", "text-embedding-ada-002"
+llm_model_name = "gpt-3.5-turbo-1106"
+# llm_model_name = "gpt-4-turbo-preview"
 questions_per_conversation = 5
 temperature = 0.1
 k = 4
-run_name = f"{index_name}-k-{k}"
+run_name = f"{index_name}-k{k}"
 
 metrics = [
     Scorers.latency,
@@ -58,7 +60,7 @@ length_scorer = pq.CustomScorer(name='Response Length', executor=executor, aggre
 metrics.append(length_scorer)
 galileo_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=run_name, scorers=metrics)
 
-pq.login("console.dev.rungalileo.io")
+pq.login("console.staging.rungalileo.io")
 
 # Prepare questions for the conversation
 df = pd.read_csv("../data/bigbasket_garnier.csv")
@@ -76,7 +78,7 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": k})  # https://github.c
 llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature)
 
 print("Ready to chat!")
-for question_chunk in tqdm(questions):
+for question_chunk in tqdm(questions[:2]):
     
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
