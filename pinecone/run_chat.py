@@ -24,10 +24,11 @@ import promptquality as pq
 from promptquality import Scorers
 from promptquality import SupportedModels
 
-project_name = "feb6"
-index_name = "garnier-4000-200"
-# index_name = "garnier-200-50"
-model_name="gpt-3.5-turbo-1106"
+project_name = "feb7"
+# index_name = "garnier-4000-200"
+index_name = "garnier-200-50"
+llm_model_name="gpt-3.5-turbo-1106"
+emb_model_name = "text-embedding-3-small"
 questions_per_conversation = 5
 temperature = 0.1
 k = 4
@@ -55,6 +56,7 @@ def aggregator(scores, indices) -> dict:
 
 length_scorer = pq.CustomScorer(name='Response Length', executor=executor, aggregator=aggregator)
 metrics.append(length_scorer)
+galileo_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=run_name, scorers=metrics)
 
 pq.login("console.dev.rungalileo.io")
 
@@ -67,12 +69,11 @@ random.Random(0).shuffle(questions)
 questions = [questions[i : i + questions_per_conversation] for i in range(0, len(questions), questions_per_conversation)]
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-embeddings = OpenAIEmbeddings()
 index = pc.Index(index_name)
+embeddings = OpenAIEmbeddings(model=emb_model_name)
 vectorstore = langchain_pinecone(index, embeddings.embed_query, "text")
 retriever = vectorstore.as_retriever(search_kwargs={"k": k})  # https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/vectorstores.py#L553
-llm = ChatOpenAI(model_name=model_name, temperature=temperature)
-galileo_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=run_name, scorers=metrics)
+llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature)
 
 print("Ready to chat!")
 for question_chunk in tqdm(questions):
