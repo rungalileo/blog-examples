@@ -48,4 +48,11 @@ def get_indexing_configuration(config):
         embeddings = OpenAIEmbeddings(model=emb_model_name)
         index_name = f"loreal-{text_splitter_identifier}-{emb_model_identifier}"
         
+    elif config == 5:
+        text_splitter = SpacySentenceTokenizer()
+        text_splitter_identifier = "sst"
+        emb_model_name, dimension, emb_model_identifier = "text-embedding-3-large", 1536*2, "openai-large"
+        embeddings = OpenAIEmbeddings(model=emb_model_name)
+        index_name = f"loreal-{text_splitter_identifier}-{emb_model_identifier}"
+        
     return text_splitter, embeddings, dimension, index_name

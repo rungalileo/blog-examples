@@ -25,13 +25,13 @@ from promptquality import Scorers
 
 project_name = "feb8-loreal-v1"
 
-indexing_config = 4
+indexing_config = 5
 _, embeddings, _, index_name = get_indexing_configuration(indexing_config)
 
 llm_model_name = "gpt-3.5-turbo-1106"
 questions_per_conversation = 5
 temperature = 0.1
-k = 15
+k = 5
 run_name = f"{index_name}-k{k}"
 
 metrics = [
