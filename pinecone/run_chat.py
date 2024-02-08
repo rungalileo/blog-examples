@@ -24,7 +24,7 @@ import promptquality as pq
 from promptquality import Scorers
 from promptquality import SupportedModels
 
-project_name = "feb7"
+project_name = "feb8-v1"
 index_name, emb_model_name = "garnier-rc-cs4000-co200-small", "text-embedding-3-small"
 # index_name, emb_model_name = "garnier-rc-cs200-co50-small", "text-embedding-3-small"
 # index_name, emb_model_name = "garnier-rc-cs200-co50-large", "text-embedding-3-large"
@@ -41,7 +41,6 @@ metrics = [
     Scorers.pii,
     Scorers.toxicity,
     Scorers.tone,
-    Scorers.correctness,
     #rag metrics below
     Scorers.context_adherence,
     Scorers.completeness_gpt,
@@ -69,6 +68,7 @@ questions = df.explode("questions")["questions"].tolist()
 random.Random(0).shuffle(questions)
 # split questions into chunks of 5
 questions = [questions[i : i + questions_per_conversation] for i in range(0, len(questions), questions_per_conversation)]
+questions = questions[:20] # selecting only first 100 turns
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index(index_name)
@@ -78,7 +78,7 @@ retriever = vectorstore.as_retriever(search_kwargs={"k": k})  # https://github.c
 llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature)
 
 print("Ready to chat!")
-for question_chunk in tqdm(questions[:2]):
+for question_chunk in tqdm(questions):
     
     memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
