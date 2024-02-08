@@ -14,26 +14,24 @@ from langchain.memory import ConversationBufferMemory
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
 
-from langchain_community.vectorstores import Pinecone as langchain_pinecone
-
+from common import get_indexing_configuration
 from dotenv import load_dotenv
+from langchain_community.vectorstores import Pinecone as langchain_pinecone
 
 load_dotenv("../.env")
 
 import promptquality as pq
 from promptquality import Scorers
-from promptquality import SupportedModels
 
-project_name = "feb8-v1"
-index_name, emb_model_name = "garnier-rc-cs4000-co200-small", "text-embedding-3-small"
-# index_name, emb_model_name = "garnier-rc-cs200-co50-small", "text-embedding-3-small"
-# index_name, emb_model_name = "garnier-rc-cs200-co50-large", "text-embedding-3-large"
-# index_name, emb_model_name = "garnier-rc-cs200-co50-002", "text-embedding-ada-002"
+project_name = "feb8-loreal-v1"
+
+indexing_config = 4
+_, embeddings, _, index_name = get_indexing_configuration(indexing_config)
+
 llm_model_name = "gpt-3.5-turbo-1106"
-# llm_model_name = "gpt-4-turbo-preview"
 questions_per_conversation = 5
 temperature = 0.1
-k = 4
+k = 15
 run_name = f"{index_name}-k{k}"
 
 metrics = [
@@ -62,7 +60,7 @@ galileo_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=r
 pq.login("console.staging.rungalileo.io")
 
 # Prepare questions for the conversation
-df = pd.read_csv("../data/bigbasket_garnier.csv")
+df = pd.read_csv("../data/bigbasket_loreal.csv")
 df["questions"] = df["questions"].apply(eval)
 questions = df.explode("questions")["questions"].tolist()
 random.Random(0).shuffle(questions)
@@ -72,7 +70,6 @@ questions = questions[:20] # selecting only first 100 turns
 
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index(index_name)
-embeddings = OpenAIEmbeddings(model=emb_model_name)
 vectorstore = langchain_pinecone(index, embeddings.embed_query, "text")
 retriever = vectorstore.as_retriever(search_kwargs={"k": k})  # https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/vectorstores.py#L553
 llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature)
