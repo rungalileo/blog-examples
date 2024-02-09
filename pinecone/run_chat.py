@@ -1,87 +1,61 @@
 
-import sys, os, random
-
-from tqdm import tqdm
-
-# tqdm.pandas()
+import random
+from dotenv import load_dotenv
 
 import pandas as pd
-from pinecone import Pinecone
-
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
-
-from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
+import promptquality as pq
+from tqdm import tqdm
 
 from common import get_indexing_configuration
-from dotenv import load_dotenv
-from langchain_community.vectorstores import Pinecone as langchain_pinecone
+from metrics import all_metrics
+from qa_chain import get_qa_chain
 
 load_dotenv("../.env")
 
-import promptquality as pq
-from promptquality import Scorers
-
-project_name = "feb8-loreal-v1"
-
-indexing_config = 5
-_, embeddings, _, index_name = get_indexing_configuration(indexing_config)
-
-llm_model_name = "gpt-3.5-turbo-1106"
-questions_per_conversation = 5
+#fixed variables
+project_name = "feb9-beauty-v2"
 temperature = 0.1
-k = 5
-run_name = f"{index_name}-k{k}"
+# questions_per_conversation = 5
 
-metrics = [
-    Scorers.latency,
-    Scorers.pii,
-    Scorers.toxicity,
-    Scorers.tone,
-    #rag metrics below
-    Scorers.context_adherence,
-    Scorers.completeness_gpt,
-    Scorers.chunk_attribution_utilization_gpt,
-    # Uncertainty, BLEU and ROUGE are automatically included
-]
+indexing_config = 8
+_, embeddings, emb_model_name, dimension, index_name = get_indexing_configuration(indexing_config)
 
-#Custom scorer for response length
-def executor(row) -> float:
-    return len(row.response)
+qa_config = 3
 
-def aggregator(scores, indices) -> dict:
-    return {'Response Length': sum(scores)/len(scores)}
-
-length_scorer = pq.CustomScorer(name='Response Length', executor=executor, aggregator=aggregator)
-metrics.append(length_scorer)
-galileo_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=run_name, scorers=metrics)
+if qa_config == 1:
+    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-1106", "3.5-1106", 10
+if qa_config == 2:
+    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-1106", "3.5-1106", 20
+elif qa_config == 3:
+    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-0125", "3.5-0125", 10
+elif qa_config == 4:
+    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-0125", "3.5-0125", 5
 
 pq.login("console.staging.rungalileo.io")
 
 # Prepare questions for the conversation
-df = pd.read_csv("../data/bigbasket_loreal.csv")
+df = pd.read_csv("../data/bigbasket_beauty.csv")
 df["questions"] = df["questions"].apply(eval)
 questions = df.explode("questions")["questions"].tolist()
 random.Random(0).shuffle(questions)
 # split questions into chunks of 5
-questions = [questions[i : i + questions_per_conversation] for i in range(0, len(questions), questions_per_conversation)]
-questions = questions[:20] # selecting only first 100 turns
+# questions = [questions[i : i + questions_per_conversation] for i in range(0, len(questions), questions_per_conversation)]
+questions = questions[:100] # selecting only first 100 turns
 
-pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
-index = pc.Index(index_name)
-vectorstore = langchain_pinecone(index, embeddings.embed_query, "text")
-retriever = vectorstore.as_retriever(search_kwargs={"k": k})  # https://github.com/langchain-ai/langchain/blob/master/libs/core/langchain_core/vectorstores.py#L553
-llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature)
+qa = get_qa_chain(embeddings, index_name, k, llm_model_name, temperature)
+run_name = f"{index_name}-{llm_identifier}-k{k}"
+index_name_tag = pq.RunTag(key="Index config", value=index_name, tag_type=pq.TagType.RAG)
+encoder_model_name_tag = pq.RunTag(key="Encoder", value=emb_model_name, tag_type=pq.TagType.RAG)
+llm_model_name_tag = pq.RunTag(key="LLM", value=llm_model_name, tag_type=pq.TagType.RAG)
+dimension_tag = pq.RunTag(key="Dimension", value=str(dimension), tag_type=pq.TagType.RAG)
+topk_tag = pq.RunTag(key="Top k", value=str(k), tag_type=pq.TagType.RAG)
 
-print("Ready to chat!")
-for question_chunk in tqdm(questions):
-    
-    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-    qa = ConversationalRetrievalChain.from_llm(llm, retriever=retriever, memory=memory)
-    
-    for q in question_chunk:
-        print("Question: ", q)
-        print(qa.run(q, callbacks=[galileo_handler]))
-        print("\n\n")
-galileo_handler.finish()
+evaluate_handler = pq.GalileoPromptCallback(project_name=project_name, run_name=run_name, scorers=all_metrics, run_tags=[encoder_model_name_tag, llm_model_name_tag, index_name_tag, dimension_tag, topk_tag])
+
+print("Ready to ask!")
+for i, q in enumerate(tqdm(questions)):
+    print(f"Question {i}: ", q)
+    print(qa.invoke(q, config=dict(callbacks=[evaluate_handler])))
+    print("\n\n")
+
+evaluate_handler.finish()

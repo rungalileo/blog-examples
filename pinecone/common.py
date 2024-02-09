@@ -23,36 +23,64 @@ def get_indexing_configuration(config):
         # https://api.python.langchain.com/en/latest/_modules/langchain/text_splitter.html#RecursiveCharacterTextSplitter
         # default value chunk_size: int = 4000, chunk_overlap: int = 200,
         text_splitter_identifier = "rc"
-        emb_model_name, dimension, emb_model_identifier = "all-mpnet-base-v2", 768, "all-mpnet"
-        embeddings = HuggingFaceEmbeddings(model_name=emb_model_name, encode_kwargs = {'normalize_embeddings': True, 'show_progress_bar': True})
-        index_name = f"loreal-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
-
+        emb_model_name, dimension, emb_model_identifier = "all-MiniLM-L6-v2", 384, "all-minilm-l6"
+        embeddings = HuggingFaceEmbeddings(model_name=emb_model_name, encode_kwargs = {'normalize_embeddings': True, 'show_progress_bar': False})
+        index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
+        
     elif config == 2:
+        text_splitter = RecursiveCharacterTextSplitter()
+        text_splitter_identifier = "rc"
+        emb_model_name, dimension, emb_model_identifier = "all-mpnet-base-v2", 768, "all-mpnet"
+        embeddings = HuggingFaceEmbeddings(model_name=emb_model_name, encode_kwargs = {'normalize_embeddings': True, 'show_progress_bar': False})
+        index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
+
+    elif config == 3:
         text_splitter = RecursiveCharacterTextSplitter()
         text_splitter_identifier = "rc"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-small", 1536, "openai-small"
         embeddings = OpenAIEmbeddings(model=emb_model_name)
-        index_name = f"loreal-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
+        index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
         
-    elif config == 3:
+    elif config == 4:
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50)
         text_splitter_identifier = "rc"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-small", 1536, "openai-small"
         embeddings = OpenAIEmbeddings(model=emb_model_name)
-        index_name = f"loreal-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
+        index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
         
-    elif config == 4:
+    elif config == 5: #1
         text_splitter = SpacySentenceTokenizer()
         text_splitter_identifier = "sst"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-small", 1536, "openai-small"
         embeddings = OpenAIEmbeddings(model=emb_model_name)
-        index_name = f"loreal-{text_splitter_identifier}-{emb_model_identifier}"
+        index_name = f"beauty-{text_splitter_identifier}-{emb_model_identifier}"
         
-    elif config == 5:
+    elif config == 6: #2
         text_splitter = SpacySentenceTokenizer()
         text_splitter_identifier = "sst"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-large", 1536*2, "openai-large"
         embeddings = OpenAIEmbeddings(model=emb_model_name)
-        index_name = f"loreal-{text_splitter_identifier}-{emb_model_identifier}"
+        index_name = f"beauty-{text_splitter_identifier}-{emb_model_identifier}"
         
-    return text_splitter, embeddings, dimension, index_name
+    elif config == 7: #3
+        text_splitter = SpacySentenceTokenizer()
+        text_splitter_identifier = "sst"
+        emb_model_name, dimension, emb_model_identifier = "all-MiniLM-L6-v2", 384, "all-minilm-l6"
+        embeddings = HuggingFaceEmbeddings(model_name=emb_model_name, encode_kwargs = {'normalize_embeddings': True, 'show_progress_bar': False})
+        index_name = f"beauty-{text_splitter_identifier}-{emb_model_identifier}"
+        
+    elif config == 8: #4
+        text_splitter = SpacySentenceTokenizer()
+        text_splitter_identifier = "sst"
+        emb_model_name, dimension, emb_model_identifier = "all-mpnet-base-v2", 768, "all-mpnet"
+        embeddings = HuggingFaceEmbeddings(model_name=emb_model_name, encode_kwargs = {'normalize_embeddings': True, 'show_progress_bar': False})
+        index_name = f"beauty-{text_splitter_identifier}-{emb_model_identifier}"
+        
+    elif config == 9:
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50)
+        text_splitter_identifier = "rc"
+        emb_model_name, dimension, emb_model_identifier = "all-mpnet-base-v2", 768, "all-mpnet"
+        embeddings = HuggingFaceEmbeddings(model_name=emb_model_name, encode_kwargs = {'normalize_embeddings': True, 'show_progress_bar': False})
+        index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
+        
+    return text_splitter, embeddings, emb_model_name, dimension, index_name
