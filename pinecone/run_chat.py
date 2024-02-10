@@ -13,23 +13,28 @@ from qa_chain import get_qa_chain
 load_dotenv("../.env")
 
 #fixed variables
-project_name = "feb9-beauty-v2"
+project_name = "feb10-qa"
 temperature = 0.1
 # questions_per_conversation = 5
 
-indexing_config = 8
+# indexing_config, qa_config = 1, 1
+# indexing_config, qa_config = 2, 1
+# indexing_config, qa_config = 3, 1
+# indexing_config, qa_config = 4, 1
+# indexing_config, qa_config = 5, 1
+# indexing_config, qa_config = 5, 2
+indexing_config, qa_config = 5, 3
+
+
 _, embeddings, emb_model_name, dimension, index_name = get_indexing_configuration(indexing_config)
 
-qa_config = 3
 
 if qa_config == 1:
-    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-1106", "3.5-1106", 10
-if qa_config == 2:
     llm_model_name, llm_identifier, k = "gpt-3.5-turbo-1106", "3.5-1106", 20
+if qa_config == 2:
+    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-1106", "3.5-1106", 15
 elif qa_config == 3:
-    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-0125", "3.5-0125", 10
-elif qa_config == 4:
-    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-0125", "3.5-0125", 5
+    llm_model_name, llm_identifier, k = "gpt-3.5-turbo-0125", "3.5-0125", 15
 
 pq.login("console.staging.rungalileo.io")
 
