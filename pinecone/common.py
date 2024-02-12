@@ -22,14 +22,14 @@ def get_indexing_configuration(config):
         text_splitter = SpacySentenceTokenizer()
         text_splitter_identifier = "sst"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-small", 1536, "openai-small"
-        embeddings = OpenAIEmbeddings(model=emb_model_name)
+        embeddings = OpenAIEmbeddings(model=emb_model_name, tiktoken_model_name="cl100k_base")
         index_name = f"beauty-{text_splitter_identifier}-{emb_model_identifier}"
         
     elif config == 2:
         text_splitter = SpacySentenceTokenizer()
         text_splitter_identifier = "sst"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-large", 1536*2, "openai-large"
-        embeddings = OpenAIEmbeddings(model=emb_model_name)
+        embeddings = OpenAIEmbeddings(model=emb_model_name, tiktoken_model_name="cl100k_base")
         index_name = f"beauty-{text_splitter_identifier}-{emb_model_identifier}"
         
     elif config == 3:
@@ -50,7 +50,7 @@ def get_indexing_configuration(config):
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=50)
         text_splitter_identifier = "rc"
         emb_model_name, dimension, emb_model_identifier = "text-embedding-3-small", 1536, "openai-small"
-        embeddings = OpenAIEmbeddings(model=emb_model_name)
+        embeddings = OpenAIEmbeddings(model=emb_model_name, tiktoken_model_name="cl100k_base")
         index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
         
     return text_splitter, embeddings, emb_model_name, dimension, index_name

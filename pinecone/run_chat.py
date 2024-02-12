@@ -13,17 +13,17 @@ from qa_chain import get_qa_chain
 load_dotenv("../.env")
 
 #fixed variables
-project_name = "feb10-qa"
+project_name = "feb12-qa"
 temperature = 0.1
 # questions_per_conversation = 5
 
-# indexing_config, qa_config = 1, 1
+indexing_config, qa_config = 1, 1
 # indexing_config, qa_config = 2, 1
 # indexing_config, qa_config = 3, 1
 # indexing_config, qa_config = 4, 1
 # indexing_config, qa_config = 5, 1
 # indexing_config, qa_config = 5, 2
-indexing_config, qa_config = 5, 3
+# indexing_config, qa_config = 5, 3
 
 
 _, embeddings, emb_model_name, dimension, index_name = get_indexing_configuration(indexing_config)

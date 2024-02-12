@@ -26,7 +26,7 @@ def get_qa_chain(embeddings, index_name, k, llm_model_name, temperature):
     )
 
     # setup llm
-    llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature)
+    llm = ChatOpenAI(model_name=llm_model_name, temperature=temperature, tiktoken_model_name="cl100k_base")
 
     # helper function to format docs
     def format_docs(docs):
