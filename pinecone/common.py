@@ -53,4 +53,12 @@ def get_indexing_configuration(config):
         embeddings = OpenAIEmbeddings(model=emb_model_name, tiktoken_model_name="cl100k_base")
         index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
         
+    elif config == 6:
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=50)
+        text_splitter_identifier = "rc"
+        emb_model_name, dimension, emb_model_identifier = "text-embedding-3-small", 1536, "openai-small"
+        embeddings = OpenAIEmbeddings(model=emb_model_name, tiktoken_model_name="cl100k_base")
+        index_name = f"beauty-{text_splitter_identifier}-cs{text_splitter._chunk_size}-co{text_splitter._chunk_overlap}-{emb_model_identifier}"
+
+        
     return text_splitter, embeddings, emb_model_name, dimension, index_name
