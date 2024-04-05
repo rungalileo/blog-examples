@@ -1,0 +1,10 @@
+langchain==0.1.12
+langchain-openai==0.0.8
+promptquality[arrow]==0.34.0
+langchain-community==0.0.24
+openai==1.10.0
+pinecone-client==3.0.1
+datasets==2.16.1
+spacy==3.7.2
+sentence-transformers
+pypdf
