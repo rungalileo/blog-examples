@@ -1,0 +1,6 @@
+crewai
+crewai_tools
+langchain-community
+pydantic
+html2text
+sec_api
