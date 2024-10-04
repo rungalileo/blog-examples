@@ -31,5 +31,10 @@ input = {
 
 agent = create_react_agent(llm, [tavily_tool])
 output = agent.invoke(input)
+
+print("\n\n\n\n START")
+print(output)
+print("\n\n\n\n END")
+
 agent_wf = evaluate_run.add_agent_workflow(input=input, output=output, duration_ns=100)
 evaluate_run.finish()

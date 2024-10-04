@@ -2,7 +2,7 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.agents import Tool
 from langchain_experimental.utilities import PythonREPL
 from langchain_community.chat_models import ChatPerplexity
-from langchain.chains import LLMChain
+from langchain_core.output_parsers import SimpleJsonOutputParser
 from langchain import PromptTemplate
 
 from dotenv import load_dotenv
@@ -35,10 +35,10 @@ perplexity_prompt = PromptTemplate(
     input_variables=["input"],
 )
 
-llm_chain = LLMChain(llm=perplexity_llm, prompt=perplexity_prompt)
+llm_chain = perplexity_prompt | perplexity_llm | SimpleJsonOutputParser()
 
 perplexity_tool = Tool(
     name="Reason",
-    func=llm_chain.run,
+    func=llm_chain.invoke,
     description="Reason about task via existing information or understanding. Make decisions / selections from options.",
 )
